@@ -13,7 +13,7 @@ class SimSiam(nn.Module):
         pred_dim: hidden dimension of the predictor, according to paper = 512
         """
 
-        # use ResNet50 as backbone
+        # use ResNet18 as backbone
         backbone = models.__dict__['resnet18']
         self.encoder = backbone(num_classes=dim, zero_init_residual=True)
     
