@@ -14,7 +14,7 @@ class SimSiam(nn.Module):
         """
 
         # use ResNet50 as backbone
-        backbone = models.__dict__['resnet50']
+        backbone = models.__dict__['resnet18']
         self.encoder = backbone(num_classes=dim, zero_init_residual=True)
     
         # build the 3-layer projector
