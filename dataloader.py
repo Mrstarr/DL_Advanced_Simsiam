@@ -24,7 +24,7 @@ class TwoCropsTransform:
         k = self.base_transform(x)
         return [q, k]
 
-def load_mnist():
+def load_mnist(augment_images=True):
     normalize = torchvision.transforms.Normalize((0.1307,), (0.3081,))
 
     augmentation = [
@@ -33,7 +33,7 @@ def load_mnist():
             transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)  # not strengthened
         ], p=0.8),
         transforms.RandomGrayscale(p=0.2),
-        transforms.RandomApply([transforms.GaussianBlur(2, (.1, 2.))], p=0.5),
+        transforms.RandomApply([transforms.GaussianBlur(3, (.1, 2.))], p=0.5),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         normalize
@@ -41,16 +41,20 @@ def load_mnist():
 
     transform = TwoCropsTransform(transforms.Compose(augmentation))
 
-    normalize = transforms.Compose([normalize])
+    normalize = transforms.Compose([transforms.ToTensor(), normalize])
 
-    dataset = torchvision.datasets.MNIST('/files/', train=True, download=True,
-                                         transform=transform)
+    if augment_images:
+        dataset = torchvision.datasets.MNIST('/files/', train=True, download=True,
+                                             transform=transform)
+    else:
+        dataset = torchvision.datasets.MNIST('/files/', train=True, download=True,
+                                             transform=normalize)
 
 
     train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size_train, shuffle=True)
 
     dataset_test = torchvision.datasets.MNIST('/files/', train=False, download=True,
-                               transform=normalize)
+                                              transform=normalize)
 
     test_loader = torch.utils.data.DataLoader(dataset_test, batch_size=batch_size_test, shuffle=True)
 
@@ -58,8 +62,9 @@ def load_mnist():
     return train_loader, test_loader
 
 
-def load_cifar():
+def load_cifar(augment_images=True):
     normalize = transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+
 
     augmentation = [
         transforms.RandomResizedCrop(32, scale=(0.2, 1.)),
@@ -67,7 +72,7 @@ def load_cifar():
             transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)  # not strengthened
         ], p=0.8),
         transforms.RandomGrayscale(p=0.2),
-        transforms.RandomApply([transforms.GaussianBlur(2, (.1, 2.))], p=0.5),
+        transforms.RandomApply([transforms.GaussianBlur(3, (.1, 2.))], p=0.5),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         normalize
@@ -75,10 +80,14 @@ def load_cifar():
 
     transform = TwoCropsTransform(transforms.Compose(augmentation))
 
-    normalize = transforms.Compose([normalize])
+    normalize = transforms.Compose([transforms.ToTensor(), normalize])
 
-    dataset = torchvision.datasets.CIFAR10('/files/', train=True, download=True,
-                                           transform=transform)
+    if augment_images:
+        dataset = torchvision.datasets.CIFAR10('/files/', train=True, download=True,
+                                               transform=transform)
+    else:
+        dataset = torchvision.datasets.CIFAR10('/files/', train=True, download=True,
+                                               transform=normalize)
 
 
     train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size_train, shuffle=True)
