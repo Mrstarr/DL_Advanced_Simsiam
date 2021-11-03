@@ -24,18 +24,6 @@ class TwoCropsTransform:
         k = self.base_transform(x)
         return [q, k]
 
-class GaussianBlur(object):
-    """Gaussian blur augmentation in SimCLR https://arxiv.org/abs/2002.05709"""
-
-    def __init__(self, sigma=[.1, 2.]):
-        self.sigma = sigma
-
-    def __call__(self, x):
-        sigma = random.uniform(self.sigma[0], self.sigma[1])
-        x = x.filter(ImageFilter.GaussianBlur(radius=sigma))
-        return x
-
-
 def load_mnist():
     normalize = torchvision.transforms.Normalize((0.1307,), (0.3081,))
 
@@ -45,7 +33,7 @@ def load_mnist():
             transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)  # not strengthened
         ], p=0.8),
         transforms.RandomGrayscale(p=0.2),
-        transforms.RandomApply([GaussianBlur([.1, 2.])], p=0.5),
+        transforms.RandomApply([transforms.GaussianBlur(2, (.1, 2.))], p=0.5),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         normalize
@@ -79,7 +67,7 @@ def load_cifar():
             transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)  # not strengthened
         ], p=0.8),
         transforms.RandomGrayscale(p=0.2),
-        transforms.RandomApply([GaussianBlur([.1, 2.])], p=0.5),
+        transforms.RandomApply([transforms.GaussianBlur(2, (.1, 2.))], p=0.5),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         normalize
@@ -103,7 +91,7 @@ def load_cifar():
     return train_loader, test_loader
 
 # Example with MNIST
-if __name__ == '__main__':   
+if __name__ == '__main__':
     train, test = load_mnist()
 
     for (x1, x2), labels in train:
