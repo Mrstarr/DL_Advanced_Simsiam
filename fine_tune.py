@@ -55,7 +55,7 @@ def fine_tune_simsiam(train_loader, freeze):
     # model.eval()
     # with torch.no_grad():
     model.train()
-    for epoch in range(10):
+    for epoch in range(3):
         acc1_avg = 0
         acc5_avg = 0
         loss_avg = 0
@@ -80,15 +80,15 @@ def fine_tune_simsiam(train_loader, freeze):
             optimizer.step()
         print("Loss: ", loss_avg/len(train_loader))
         print("Accuracy: ", acc1_avg/len(train_loader), acc5_avg/len(train_loader))
-    
+
     return model
 
 def inference_simsiam(test_loader, fine_tuned_model):
     fine_tuned_model.eval()
-    # define loss function 
-    criterion = nn.CrossEntropyLoss().to(device)
 
     print("Testing the model...")
+    acc1_avg = 0
+    acc5_avg = 0
     with torch.no_grad():
         for i, (images, target) in enumerate(test_loader):
             images = images.to(device)
@@ -100,12 +100,13 @@ def inference_simsiam(test_loader, fine_tuned_model):
 
             # print accuracy and loss
             acc1, acc5 = accuracy(output, target, topk=(1, 5))
-            #print("Loss: ", loss.item())
-            print("Accuracy: ", acc1.item(), acc5.item())
-            
-
+            acc1_avg += acc1.item()
+            acc5_avg += acc5.item()
+        print("Accuracy: ", acc1_avg/len(test_loader), acc5_avg//len(test_loader))
 
 if __name__ == '__main__':
     train_loader, test_loader = load_cifar(augment_images=False)
-    fine_tuned_model = fine_tune_simsiam(train_loader, freeze=False)
+    fine_tuned_model = fine_tune_simsiam(train_loader, freeze=True)
     inference_simsiam(test_loader, fine_tuned_model)
+
+    torch.save(fine_tuned_model.state_dict(), "models/fine_tuned_model.pt")
