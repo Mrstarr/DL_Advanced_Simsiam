@@ -43,7 +43,7 @@ def fine_tune_simsiam(train_loader):
     model = models.simsiam_builder.SimSiamWrapper(model, dim, num_classes=10)
     model = model.to(device)
 
-    # define loss function (criterion) and optimizer
+    # define loss function and optimizer
     criterion = nn.CrossEntropyLoss().to(device)
     # optimize only the linear classifier
     # parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
@@ -64,7 +64,7 @@ def fine_tune_simsiam(train_loader):
         output = model(images)
         loss = criterion(output, target)
 
-        # measure accuracy
+        # print accuracy and loss
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
         print("Loss: ", loss.item())
         print("Accuracy: ", acc1.item(), acc5.item())
@@ -73,7 +73,32 @@ def fine_tune_simsiam(train_loader):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+    
+    return model
+
+def inference_simsiam(test_loader, fine_tuned_model):
+    fine_tuned_model.eval()
+    # define loss function 
+    criterion = nn.CrossEntropyLoss().to(device)
+
+    print("Testing the model...")
+    with torch.no_grad():
+        for i, (images, target) in enumerate(test_loader):
+            images = images.to(device)
+            target = target.to(device)
+
+            # compute output
+            output = fine_tuned_model(images)
+            #loss = criterion(output, target)
+
+            # print accuracy and loss
+            acc1, acc5 = accuracy(output, target, topk=(1, 5))
+            #print("Loss: ", loss.item())
+            print("Accuracy: ", acc1.item(), acc5.item())
+            
+
 
 if __name__ == '__main__':
     train_loader, test_loader = load_cifar(augment_images=False)
-    fine_tune_simsiam(train_loader)
+    fine_tuned_model = fine_tune_simsiam(train_loader)
+    inference_simsiam(test_loader, fine_tuned_model)
