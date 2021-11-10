@@ -11,9 +11,9 @@ def main():
         labels, latents = pickle.load(f)
 
     if latents.shape[1] > 2:
-        pca = TSNE(n_components=2)
+        pca = PCA(n_components=2)
         latents = pca.fit_transform(latents)
-        # print(pca.explained_variance_ratio_)
+        print(pca.explained_variance_ratio_)
 
     for label in set(labels):
         subsetX = latents[labels==label]

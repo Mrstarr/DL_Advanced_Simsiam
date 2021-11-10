@@ -35,12 +35,12 @@ def accuracy(output, target, topk=(1,)):
 '''
 Fine tune the SimSiam model
 '''
-def fine_tune_simsiam(train_loader):
+def fine_tune_simsiam(train_loader, freeze):
     # Import pre-trained model
     print("Loading pre-trained model...")
     model = models.simsiam_builder.SimSiam(dim=dim, pred_dim=pred_dim)
     model.load_state_dict(torch.load("models/export.pt"))
-    model = models.simsiam_builder.SimSiamWrapper(model, dim, num_classes=10)
+    model = models.simsiam_builder.SimSiamWrapper(model, dim, freeze=freeze, num_classes=10)
     model = model.to(device)
 
     # define loss function and optimizer
@@ -55,24 +55,31 @@ def fine_tune_simsiam(train_loader):
     # model.eval()
     # with torch.no_grad():
     model.train()
-    for i, (images, target) in enumerate(train_loader):
+    for epoch in range(10):
+        acc1_avg = 0
+        acc5_avg = 0
+        loss_avg = 0
+        for i, (images, target) in enumerate(train_loader):
 
-        images = images.to(device)
-        target = target.to(device)
+            images = images.to(device)
+            target = target.to(device)
 
-        # compute output
-        output = model(images)
-        loss = criterion(output, target)
+            # compute output
+            output = model(images)
+            loss = criterion(output, target)
 
-        # print accuracy and loss
-        acc1, acc5 = accuracy(output, target, topk=(1, 5))
-        print("Loss: ", loss.item())
-        print("Accuracy: ", acc1.item(), acc5.item())
+            # measure accuracy
+            acc1, acc5 = accuracy(output, target, topk=(1, 5))
+            loss_avg += loss.item()
+            acc1_avg += acc1.item()
+            acc5_avg += acc5.item()
 
-        # compute gradient and do SGD step
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            # compute gradient and do SGD step
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        print("Loss: ", loss_avg/len(train_loader))
+        print("Accuracy: ", acc1_avg/len(train_loader), acc5_avg/len(train_loader))
     
     return model
 
@@ -100,5 +107,5 @@ def inference_simsiam(test_loader, fine_tuned_model):
 
 if __name__ == '__main__':
     train_loader, test_loader = load_cifar(augment_images=False)
-    fine_tuned_model = fine_tune_simsiam(train_loader)
+    fine_tuned_model = fine_tune_simsiam(train_loader, freeze=False)
     inference_simsiam(test_loader, fine_tuned_model)
