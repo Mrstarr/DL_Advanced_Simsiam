@@ -65,7 +65,7 @@ SimSiam model
 """
 class SimSiamWrapper(nn.Module):
 
-    def __init__(self, simsiam_model, dim, num_classes=10):
+    def __init__(self, simsiam_model, dim, freeze=True, num_classes=10):
         """
         dim: feature dimension (default: 2048), The hidden fc is 2048-d
         pred_dim: hidden dimension of the predictor, according to paper = 512
@@ -75,8 +75,9 @@ class SimSiamWrapper(nn.Module):
 
         # use ResNet18 as backbone
         self.encoder = simsiam_model.encoder
-        for name, param in self.encoder.named_parameters():
-            param.requires_grad = False
+        if freeze:
+            for name, param in self.encoder.named_parameters():
+                param.requires_grad = False
 
         self.fc = nn.Linear(dim, num_classes)
         self.fc.weight.data.normal_(mean=0.0, std=0.01)
