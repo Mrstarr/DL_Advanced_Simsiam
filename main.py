@@ -6,6 +6,7 @@ import numpy as np
 import models.simsiam_builder
 from train import train_simsiam, adjust_learning_rate
 from dataloader import load_cifar
+from get_latent_space import get_and_save_latents
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -56,7 +57,10 @@ for epoch in range(start_epoch, epochs):
     train_simsiam(train_loader, simsiam, criterion, optimizer, epoch, pred_dim, device)
 
 torch.save(simsiam.state_dict(), "models/export.pt")
+
 # Model can be loaded with:
 # model = models.simsiam_builder.SimSiam(dim=dim, pred_dim=pred_dim)
-# model.load_state_dict(torch.load("export.pt"))
+# model.load_state_dict(torch.load("models/export.pt"))
 # model = model.to(device)
+
+get_and_save_latents(test_loader, model, device)
