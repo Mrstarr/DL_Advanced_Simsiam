@@ -7,16 +7,18 @@ SimSiam model
 """
 class SimSiam(nn.Module):
 
-    def __init__(self, dim=2048, pred_dim=512):
+    def __init__(self, dim=128, pred_dim=64):
         """
         dim: feature dimension (default: 2048), The hidden fc is 2048-d
         pred_dim: hidden dimension of the predictor, according to paper = 512
         """
 
+        super(SimSiam, self).__init__()
+
         # use ResNet18 as backbone
         backbone = models.__dict__['resnet18']
         self.encoder = backbone(num_classes=dim, zero_init_residual=True)
-    
+
         # build the 3-layer projector
         prev_dim = self.encoder.fc.weight.shape[1]
         self.encoder.fc = nn.Sequential(nn.Linear(prev_dim, prev_dim, bias=False),
@@ -31,10 +33,10 @@ class SimSiam(nn.Module):
 
         # build the 2-layer predictor
         self.predictor = nn.Sequential(nn.Linear(dim, pred_dim, bias=False),
-                                        nn.BatchNorm1d(pred_dim),
-                                        nn.ReLU(inplace=True), # hidden layer
-                                        nn.Linear(pred_dim, dim)) # output layer
-    
+                                       nn.BatchNorm1d(pred_dim),
+                                       nn.ReLU(inplace=True), # hidden layer
+                                       nn.Linear(pred_dim, dim)) # output layer
+
     def forward(self, x1, x2):
         """
         Input:
@@ -52,4 +54,4 @@ class SimSiam(nn.Module):
         p1 = self.predictor(z1) # NxC
         p2 = self.predictor(z2) # NxC
 
-        return p1, p2, z1.detach(), z2.detach() # stop-gradient 
+        return p1, p2, z1.detach(), z2.detach() # stop-gradient
