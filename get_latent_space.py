@@ -26,7 +26,7 @@ def get_latents(test_loader, model, device):
     return np.array(labels), latent_space
 
 
-def get_and_save_latents(test_loader, model, device):
+def get_and_save_latents(test_loader, model, device, fn="labels_and_latents_export.pkl"):
     labels, latent_space = get_latents(test_loader, model, device)
-    with open("labels_and_latents_export.pkl", "wb") as f:
+    with open(fn, "wb") as f:
         pickle.dump((labels, latent_space), f)

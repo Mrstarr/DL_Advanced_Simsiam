@@ -87,3 +87,7 @@ class SimSiamWrapper(nn.Module):
     def forward(self, x):
         z = self.encoder(x)
         return self.fc(z)
+
+    def forward_single(self, x):
+        z = self.encoder(x)
+        return z

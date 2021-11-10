@@ -5,6 +5,7 @@ from torch import nn
 import models.simsiam_builder
 from main import pred_dim, dim, momentum, weight_decay, init_lr
 from dataloader import load_cifar
+from get_latent_space import get_and_save_latents
 
 '''
 Script which takes a pre-trained model and fine-tunes it for classification
@@ -55,7 +56,7 @@ def fine_tune_simsiam(train_loader, freeze):
     # model.eval()
     # with torch.no_grad():
     model.train()
-    for epoch in range(3):
+    for epoch in range(10):
         acc1_avg = 0
         acc5_avg = 0
         loss_avg = 0
@@ -106,7 +107,9 @@ def inference_simsiam(test_loader, fine_tuned_model):
 
 if __name__ == '__main__':
     train_loader, test_loader = load_cifar(augment_images=False)
-    fine_tuned_model = fine_tune_simsiam(train_loader, freeze=True)
+    fine_tuned_model = fine_tune_simsiam(train_loader, freeze=False)
     inference_simsiam(test_loader, fine_tuned_model)
+
+    get_and_save_latents(test_loader, fine_tuned_model, device, fn="finetuned_labels_and_latents_export.pkl")
 
     torch.save(fine_tuned_model.state_dict(), "models/fine_tuned_model.pt")

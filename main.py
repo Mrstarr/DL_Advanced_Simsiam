@@ -60,7 +60,8 @@ if __name__ == '__main__':
 
     # Model can be loaded with:
     # model = models.simsiam_builder.SimSiam(dim=dim, pred_dim=pred_dim)
-    # model.load_state_dict(torch.load("models/export.pt"))
+    # model = models.simsiam_builder.SimSiamWrapper(model, dim=dim, num_classes=10)
+    # model.load_state_dict(torch.load("models/fine_tuned_model.pt"))
     # model = model.to(device)
 
     get_and_save_latents(test_loader, simsiam, device)
