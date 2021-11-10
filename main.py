@@ -12,7 +12,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Hyperparams, added defualt values
 batch_size = 16
-lr = 0.1
+lr = 0.05
 gpu = None
 momentum = 0.9
 weight_decay = 1e-4
@@ -63,4 +63,4 @@ torch.save(simsiam.state_dict(), "models/export.pt")
 # model.load_state_dict(torch.load("models/export.pt"))
 # model = model.to(device)
 
-get_and_save_latents(test_loader, model, device)
+get_and_save_latents(test_loader, simsiam, device)
