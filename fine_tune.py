@@ -1,9 +1,10 @@
-import torch 
-import torch as nn
+import torch
+from torch import nn
 
 # custom import
 import models.simsiam_builder
 from main import pred_dim, dim, momentum, weight_decay, init_lr
+from dataloader import load_cifar
 
 '''
 Script which takes a pre-trained model and fine-tunes it for classification
@@ -32,49 +33,47 @@ def accuracy(output, target, topk=(1,)):
         return res
 
 '''
-Fine tune the SimSiam model 
+Fine tune the SimSiam model
 '''
 def fine_tune_simsiam(train_loader):
-    # Import pre-trained model 
+    # Import pre-trained model
     print("Loading pre-trained model...")
     model = models.simsiam_builder.SimSiam(dim=dim, pred_dim=pred_dim)
-    model.load_state_dict(torch.load("export.pt"))
+    model.load_state_dict(torch.load("models/export.pt"))
+    model = models.simsiam_builder.SimSiamWrapper(model, dim, num_classes=10)
     model = model.to(device)
-
-    # freeze all layers but the last fc
-    for name, param in model.named_parameters():
-        if name not in ['fc.weight', 'fc.bias']:
-            param.requires_grad = False
-    # init the fc layer
-    model.fc.weight.data.normal_(mean=0.0, std=0.01)
-    model.fc.bias.data.zero_()
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().to(device)
     # optimize only the linear classifier
-    parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
-    optimizer = torch.optim.SGD(parameters, init_lr,
-                                    momentum=momentum,
-                                    weight_decay=weight_decay)
+    # parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
+    optimizer = torch.optim.SGD(model.parameters(), init_lr,
+                                momentum=momentum,
+                                weight_decay=weight_decay)
 
     print("Fine-tuning model...")
-    model.eval()
-    with torch.no_grad():
-        for i, (images, target) in enumerate(train_loader):
+    # model.eval()
+    # with torch.no_grad():
+    model.train()
+    for i, (images, target) in enumerate(train_loader):
 
-            images = images.to(device)
-            target = target.to(device)
+        images = images.to(device)
+        target = target.to(device)
 
-            # compute output
-            output = model(images)
-            loss = criterion(output, target)
+        # compute output
+        output = model(images)
+        loss = criterion(output, target)
 
-            # measure accuracy 
-            acc1, acc5 = accuracy(output, target, topk=(1, 5))
-            print("Loss: ", loss)
-            print("Accuracy: ", acc1, acc5)
+        # measure accuracy
+        acc1, acc5 = accuracy(output, target, topk=(1, 5))
+        print("Loss: ", loss.item())
+        print("Accuracy: ", acc1.item(), acc5.item())
 
-            # compute gradient and do SGD step
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+        # compute gradient and do SGD step
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+if __name__ == '__main__':
+    train_loader, test_loader = load_cifar(augment_images=False)
+    fine_tune_simsiam(train_loader)

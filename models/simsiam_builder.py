@@ -7,7 +7,7 @@ SimSiam model
 """
 class SimSiam(nn.Module):
 
-    def __init__(self, dim=128, pred_dim=64):
+    def __init__(self, dim=512, pred_dim=128):
         """
         dim: feature dimension (default: 2048), The hidden fc is 2048-d
         pred_dim: hidden dimension of the predictor, according to paper = 512
@@ -59,3 +59,30 @@ class SimSiam(nn.Module):
     def forward_single(self, x):
         z = self.encoder(x)
         return z
+
+"""
+SimSiam model
+"""
+class SimSiamWrapper(nn.Module):
+
+    def __init__(self, simsiam_model, dim, num_classes=10):
+        """
+        dim: feature dimension (default: 2048), The hidden fc is 2048-d
+        pred_dim: hidden dimension of the predictor, according to paper = 512
+        """
+
+        super(SimSiamWrapper, self).__init__()
+
+        # use ResNet18 as backbone
+        self.encoder = simsiam_model.encoder
+        for name, param in self.encoder.named_parameters():
+            param.requires_grad = False
+
+        self.fc = nn.Linear(dim, num_classes)
+        self.fc.weight.data.normal_(mean=0.0, std=0.01)
+        self.fc.bias.data.zero_()
+
+
+    def forward(self, x):
+        z = self.encoder(x)
+        return self.fc(z)
